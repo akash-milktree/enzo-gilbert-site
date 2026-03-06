@@ -3,148 +3,265 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import SplitType from "split-type";
 import { JOURNEY_CONTENT } from "@/lib/constants";
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function GolfJourney() {
   const sectionRef = useRef<HTMLElement>(null);
-  const lineRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Draw the timeline line
-      gsap.from(lineRef.current, {
-        scaleY: 0,
-        transformOrigin: "top center",
-        ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 60%",
-          end: "bottom 40%",
-          scrub: 1,
-        },
-      });
+    const section = sectionRef.current;
+    const track = trackRef.current;
+    if (!section || !track) return;
 
-      // Animate each milestone card
-      gsap.utils.toArray<HTMLElement>(".milestone-card").forEach((card, i) => {
-        gsap.from(card, {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+    const ctx = gsap.context(() => {
+      if (!isMobile) {
+        // Horizontal scroll — pin section, translate track
+        const slides = track.querySelectorAll(".journey-slide");
+        const totalWidth = track.scrollWidth - window.innerWidth;
+
+        const scrollTween = gsap.to(track, {
+          x: -totalWidth,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: () => `+=${totalWidth}`,
+            pin: true,
+            scrub: 1,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        // Progress bar synced to horizontal scroll
+        gsap.to(progressRef.current, {
+          scaleX: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: () => `+=${totalWidth}`,
+            scrub: 1,
+          },
+        });
+
+        // Text reveals per slide — triggered as each slide enters
+        slides.forEach((slide) => {
+          const textEls = slide.querySelectorAll("[data-split]");
+          textEls.forEach((el) => {
+            const split = new SplitType(el as HTMLElement, { types: "lines" });
+            if (split.lines) {
+              split.lines.forEach((line) => {
+                const wrapper = document.createElement("div");
+                wrapper.style.overflow = "hidden";
+                line.parentNode?.insertBefore(wrapper, line);
+                wrapper.appendChild(line);
+              });
+
+              gsap.from(split.lines, {
+                y: "100%",
+                opacity: 0,
+                duration: 0.8,
+                stagger: 0.08,
+                ease: "power4.out",
+                scrollTrigger: {
+                  trigger: slide,
+                  containerAnimation: scrollTween,
+                  start: "left 70%",
+                  toggleActions: "play none none none",
+                },
+              });
+            }
+          });
+
+          // Milestone number scale-in
+          const num = slide.querySelector(".milestone-num");
+          if (num) {
+            gsap.from(num, {
+              scale: 0.5,
+              opacity: 0,
+              duration: 1,
+              ease: "power3.out",
+              scrollTrigger: {
+                trigger: slide,
+                containerAnimation: scrollTween,
+                start: "left 80%",
+              },
+            });
+          }
+        });
+      } else {
+        // Mobile — vertical stack with triggered reveals
+        const cards = section.querySelectorAll(".journey-card");
+        cards.forEach((card) => {
+          gsap.from(card, {
+            y: 60,
+            opacity: 0,
+            duration: 0.8,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: card,
+              start: "top 85%",
+            },
+          });
+        });
+      }
+
+      // Section heading reveal
+      const headingSplit = new SplitType(".journey-heading", {
+        types: "chars",
+      });
+      if (headingSplit.chars) {
+        gsap.from(headingSplit.chars, {
           y: 60,
           opacity: 0,
-          duration: 0.8,
-          ease: "power3.out",
+          duration: 0.6,
+          stagger: 0.02,
+          ease: "power4.out",
           scrollTrigger: {
-            trigger: card,
+            trigger: ".journey-heading",
             start: "top 85%",
-            toggleActions: "play none none none",
           },
-          delay: i * 0.05,
         });
-      });
-    }, sectionRef);
+      }
+    }, section);
 
     return () => ctx.revert();
   }, []);
+
+  const milestones = JOURNEY_CONTENT.milestones;
 
   return (
     <section
       ref={sectionRef}
       id="journey"
-      className="relative overflow-hidden bg-charcoal py-28 sm:py-36"
+      className="relative overflow-hidden bg-charcoal"
     >
-      {/* Background accent */}
-      <div className="absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-neon/3 blur-[200px]" />
+      {/* Rotated section label — visible on desktop */}
+      <div className="pointer-events-none absolute left-8 top-1/2 z-10 hidden -translate-y-1/2 -rotate-90 lg:block">
+        <span className="whitespace-nowrap font-display text-[10px] font-bold uppercase tracking-[0.5em] text-offwhite/10">
+          Enzo&apos;s Golf Journey
+        </span>
+      </div>
 
-      <div className="mx-auto max-w-7xl px-6 lg:px-12">
-        {/* Header */}
-        <div className="mb-20 text-center">
-          <span className="mb-3 inline-block text-xs font-bold uppercase tracking-[0.3em] text-neon">
-            The Journey
-          </span>
-          <h2 className="font-display text-4xl font-black uppercase tracking-tight text-offwhite sm:text-6xl">
-            {JOURNEY_CONTENT.heading}
-          </h2>
-          <p className="mt-4 text-lg italic text-offwhite/50">
-            {JOURNEY_CONTENT.subheading}
-          </p>
-        </div>
+      {/* Heading — pinned at top on desktop */}
+      <div className="relative z-10 px-6 pb-8 pt-28 sm:pt-40 lg:px-12">
+        <span className="mb-4 block text-[10px] font-bold uppercase tracking-[0.4em] text-neon-dim">
+          Journey
+        </span>
+        <h2 className="journey-heading font-display text-[clamp(2.5rem,5vw,4.5rem)] font-bold uppercase leading-[0.95] tracking-tight text-offwhite">
+          {JOURNEY_CONTENT.heading}
+        </h2>
+        <p className="mt-4 max-w-md text-sm text-offwhite/40">
+          {JOURNEY_CONTENT.subheading}
+        </p>
+      </div>
 
-        {/* Timeline */}
-        <div className="relative">
-          {/* Vertical line */}
-          <div
-            ref={lineRef}
-            className="absolute left-6 top-0 h-full w-[2px] bg-gradient-to-b from-neon via-neon/50 to-transparent md:left-1/2 md:-translate-x-1/2"
-          />
+      {/* Desktop: Horizontal scroll track */}
+      <div className="hidden md:block">
+        <div
+          ref={trackRef}
+          className="flex"
+          style={{ width: `${milestones.length * 100}vw` }}
+        >
+          {milestones.map((m) => (
+            <div
+              key={m.id}
+              className="journey-slide relative flex h-[80vh] w-screen flex-shrink-0 items-center px-12 lg:px-24"
+            >
+              {/* Giant milestone number — background */}
+              <div className="milestone-num pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 select-none font-display text-[30vw] font-bold leading-none text-offwhite/[0.03]">
+                {String(m.id).padStart(2, "0")}
+              </div>
 
-          <div className="space-y-16 md:space-y-24">
-            {JOURNEY_CONTENT.milestones.map((milestone, i) => (
-              <div
-                key={milestone.id}
-                className={`milestone-card relative flex flex-col gap-6 pl-16 md:flex-row md:items-center md:gap-12 md:pl-0 ${
-                  i % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                }`}
-              >
-                {/* Dot on timeline */}
-                <div className="absolute left-4 top-2 z-10 h-5 w-5 rounded-full border-[3px] border-neon bg-charcoal md:left-1/2 md:-translate-x-1/2">
-                  <div className="absolute inset-0 animate-ping rounded-full bg-neon/20" />
-                </div>
-
-                {/* Video/Image placeholder */}
-                <div className="w-full md:w-1/2">
-                  <div className="aspect-video overflow-hidden rounded-xl bg-graphite">
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-charcoal to-graphite">
-                      <div className="text-center">
-                        <svg
-                          className="mx-auto h-12 w-12 text-neon/30"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={1.5}
-                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        <p className="mt-2 text-xs text-offwhite/30">
-                          Video thumbnail
-                        </p>
-                      </div>
+              {/* Media placeholder — left 60% */}
+              <div className="relative mr-12 h-[65vh] w-[60%] flex-shrink-0 overflow-hidden rounded-lg bg-offwhite/[0.04]">
+                <div className="flex h-full w-full items-center justify-center">
+                  <div className="text-center">
+                    <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full border border-offwhite/10">
+                      <span className="font-display text-2xl font-bold text-offwhite/15">
+                        {String(m.id).padStart(2, "0")}
+                      </span>
                     </div>
+                    <p className="text-xs text-offwhite/20">{m.caption}</p>
                   </div>
                 </div>
-
-                {/* Content */}
-                <div
-                  className={`w-full md:w-1/2 ${
-                    i % 2 === 0 ? "md:text-left" : "md:text-right"
-                  }`}
-                >
-                  <span className="inline-block rounded-full bg-neon/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-neon">
-                    {String(milestone.id).padStart(2, "0")}
-                  </span>
-                  <h3 className="mt-3 font-display text-2xl font-bold uppercase tracking-wide text-offwhite sm:text-3xl">
-                    {milestone.title}
-                  </h3>
-                  <p className="mt-3 text-base leading-relaxed text-offwhite/60">
-                    {milestone.description}
-                  </p>
-                  <p className="mt-4 text-sm italic text-neon/70">
-                    &ldquo;{milestone.caption}&rdquo;
-                  </p>
-                </div>
+                {/* Gradient scrim at bottom */}
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-charcoal/60 to-transparent" />
               </div>
-            ))}
-          </div>
+
+              {/* Text — right side */}
+              <div className="relative z-10 max-w-md">
+                <span className="mb-2 block font-display text-xs font-bold uppercase tracking-[0.3em] text-neon/60">
+                  Chapter {String(m.id).padStart(2, "0")}
+                </span>
+                <h3
+                  data-split
+                  className="font-display text-3xl font-bold uppercase leading-tight text-offwhite lg:text-4xl"
+                >
+                  {m.title}
+                </h3>
+                <p
+                  data-split
+                  className="mt-4 text-base leading-relaxed text-offwhite/50"
+                >
+                  {m.description}
+                </p>
+                <p className="mt-6 text-xs italic text-offwhite/30">
+                  {m.caption}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
+
+        {/* Progress bar */}
+        <div className="fixed bottom-0 left-0 right-0 z-20 h-[2px] bg-offwhite/5">
+          <div
+            ref={progressRef}
+            className="h-full origin-left bg-neon"
+            style={{ transform: "scaleX(0)" }}
+          />
+        </div>
+      </div>
+
+      {/* Mobile: Vertical cards */}
+      <div className="space-y-8 px-6 pb-28 md:hidden">
+        {milestones.map((m) => (
+          <div
+            key={m.id}
+            className="journey-card relative overflow-hidden rounded-lg bg-offwhite/[0.04] p-6"
+          >
+            {/* Background number */}
+            <span className="absolute -right-4 -top-6 select-none font-display text-[8rem] font-bold leading-none text-offwhite/[0.03]">
+              {String(m.id).padStart(2, "0")}
+            </span>
+
+            {/* Media placeholder */}
+            <div className="mb-6 aspect-video overflow-hidden rounded bg-offwhite/[0.06]">
+              <div className="flex h-full w-full items-center justify-center">
+                <p className="text-xs text-offwhite/20">{m.caption}</p>
+              </div>
+            </div>
+
+            <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.3em] text-neon/60">
+              Chapter {String(m.id).padStart(2, "0")}
+            </span>
+            <h3 className="font-display text-xl font-bold uppercase text-offwhite">
+              {m.title}
+            </h3>
+            <p className="mt-3 text-sm leading-relaxed text-offwhite/50">
+              {m.description}
+            </p>
+          </div>
+        ))}
       </div>
     </section>
   );

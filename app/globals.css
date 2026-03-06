@@ -35,7 +35,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom selection */
 ::selection {
   background: #CCFF00;
   color: #1E2125;
@@ -53,57 +52,79 @@ body {
   background-size: 256px 256px;
 }
 
-/* Custom cursor */
+/* ──────── Custom Cursor ──────── */
 .custom-cursor {
   width: 20px;
   height: 20px;
-  border: 2px solid #CCFF00;
+  border: 1.5px solid #CCFF00;
   border-radius: 50%;
   position: fixed;
   pointer-events: none;
   z-index: 99999;
-  transition: transform 0.15s ease, opacity 0.15s ease;
+  mix-blend-mode: difference;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  left: 0;
+}
+
+.custom-cursor .cursor-label {
+  font-size: 8px;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+  color: #CCFF00;
+  opacity: 0;
+}
+
+.custom-cursor.expanded {
+  width: 80px;
+  height: 80px;
+  border-color: rgba(204, 255, 0, 0.4);
+  background: rgba(204, 255, 0, 0.05);
+}
+
+.custom-cursor.expanded .cursor-label {
+  opacity: 1;
+}
+
+/* ──────── Clip-path reveal states ──────── */
+.clip-left {
+  clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+}
+.clip-right {
+  clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%);
+}
+.clip-bottom {
+  clip-path: inset(100% 0 0 0);
+}
+.clip-full {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+/* ──────── Blend modes ──────── */
+.blend-difference {
   mix-blend-mode: difference;
 }
-
-.custom-cursor.hovering {
-  transform: scale(3);
-  background: rgba(204, 255, 0, 0.1);
+.blend-exclusion {
+  mix-blend-mode: exclusion;
 }
 
-/* Smooth image reveal */
-.img-reveal {
-  clip-path: inset(100% 0 0 0);
-  transition: clip-path 1s cubic-bezier(0.77, 0, 0.175, 1);
-}
-
-.img-reveal.revealed {
-  clip-path: inset(0 0 0 0);
-}
-
-/* Text split animation base */
-.line-reveal {
+/* ──────── Split text overflow containers ──────── */
+.split-line {
   overflow: hidden;
+  display: block;
 }
 
-.line-reveal > span {
-  display: inline-block;
-  transform: translateY(110%);
-  transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+.split-line .line {
+  display: block;
 }
 
-.line-reveal.visible > span {
-  transform: translateY(0);
-}
-
-/* Timeline line */
-.timeline-line {
-  background: linear-gradient(to bottom, #CCFF00, transparent);
-}
-
-/* Scrollbar styling */
+/* ──────── Scrollbar ──────── */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -112,14 +133,26 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #CCFF00;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
-/* Magnetic button base */
-.magnetic-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
+/* ──────── Underline input style ──────── */
+.input-underline {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(245, 241, 235, 0.15);
+  padding: 12px 0;
+  color: #F5F1EB;
+  font-size: 16px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.input-underline:focus {
+  border-bottom-color: #CCFF00;
+}
+
+.input-underline::placeholder {
+  color: rgba(245, 241, 235, 0.25);
 }

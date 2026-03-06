@@ -1,19 +1,20 @@
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import CustomCursor from "@/components/ui/CustomCursor";
 import GrainOverlay from "@/components/ui/GrainOverlay";
+import Preloader from "@/components/ui/Preloader";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
 import MeetEnzo from "@/components/MeetEnzo";
 import GolfJourney from "@/components/GolfJourney";
-import OtherSports from "@/components/OtherSports";
+import SportsShowcase from "@/components/SportsShowcase";
 import Sponsors from "@/components/Sponsors";
-import BlogGrid from "@/components/BlogGrid";
-import Contact from "@/components/Contact";
+import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
     <SmoothScroll>
+      <Preloader />
       <CustomCursor />
       <GrainOverlay />
       <Navigation />
@@ -21,10 +22,9 @@ export default function Home() {
         <Hero />
         <MeetEnzo />
         <GolfJourney />
-        <OtherSports />
+        <SportsShowcase />
         <Sponsors />
-        <BlogGrid />
-        <Contact />
+        <ContactSection />
       </main>
       <Footer />
     </SmoothScroll>

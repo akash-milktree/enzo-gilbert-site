@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, createContext, useContext } from "react";
 import Lenis from "lenis";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
+
+const LenisContext = createContext<Lenis | null>(null);
+
+export function useLenisScroll() {
+  return useContext(LenisContext);
+}
 
 export default function SmoothScroll({
   children,
@@ -19,18 +29,18 @@ export default function SmoothScroll({
 
     lenisRef.current = lenis;
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
+    // Critical: sync Lenis with GSAP ScrollTrigger to prevent pin jitter
+    lenis.on("scroll", ScrollTrigger.update);
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
+    gsap.ticker.lagSmoothing(0);
 
     // Handle anchor links
     document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
       anchor.addEventListener("click", (e) => {
         e.preventDefault();
-        const href = (e.currentTarget as HTMLAnchorElement).getAttribute("href");
+        const href = (e.currentTarget as HTMLAnchorElement).getAttribute(
+          "href"
+        );
         if (href) {
           const target = document.querySelector(href);
           if (target) {
@@ -45,5 +55,9 @@ export default function SmoothScroll({
     };
   }, []);
 
-  return <>{children}</>;
+  return (
+    <LenisContext.Provider value={lenisRef.current}>
+      {children}
+    </LenisContext.Provider>
+  );
 }

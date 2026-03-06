@@ -3,7 +3,9 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import SplitType from "split-type";
 import { SPONSORS_CONTENT } from "@/lib/constants";
+import MagneticButton from "@/components/ui/MagneticButton";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,30 +13,89 @@ export default function Sponsors() {
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
     const ctx = gsap.context(() => {
-      gsap.from(".sponsor-content > *", {
-        y: 50,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.12,
-        ease: "power3.out",
+      // Heading character reveal — dramatic stagger
+      const headingSplit = new SplitType(".sponsors-heading", {
+        types: "chars",
+      });
+      if (headingSplit.chars) {
+        gsap.from(headingSplit.chars, {
+          y: 120,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.03,
+          ease: "power4.out",
+          scrollTrigger: {
+            trigger: ".sponsors-heading",
+            start: "top 85%",
+          },
+        });
+      }
+
+      // Full-width neon line draw
+      gsap.from(".sponsors-line", {
+        scaleX: 0,
+        transformOrigin: "left center",
+        duration: 1.5,
+        ease: "power3.inOut",
         scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 75%",
+          trigger: ".sponsors-line",
+          start: "top 90%",
         },
       });
 
-      gsap.from(".sponsor-image", {
-        x: 80,
+      // Body text line reveal
+      const bodyEl = section.querySelector("[data-split-body]");
+      if (bodyEl) {
+        const split = new SplitType(bodyEl as HTMLElement, { types: "lines" });
+        if (split.lines) {
+          split.lines.forEach((line) => {
+            const wrapper = document.createElement("div");
+            wrapper.style.overflow = "hidden";
+            line.parentNode?.insertBefore(wrapper, line);
+            wrapper.appendChild(line);
+          });
+
+          gsap.from(split.lines, {
+            y: "100%",
+            opacity: 0,
+            duration: 0.7,
+            stagger: 0.1,
+            ease: "power4.out",
+            scrollTrigger: {
+              trigger: bodyEl,
+              start: "top 85%",
+            },
+          });
+        }
+      }
+
+      // CTA reveal
+      gsap.from(".sponsors-cta", {
+        y: 40,
         opacity: 0,
-        duration: 1,
+        duration: 0.8,
         ease: "power3.out",
         scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 70%",
+          trigger: ".sponsors-cta",
+          start: "top 90%",
         },
       });
-    }, sectionRef);
+
+      // Note fade in
+      gsap.from(".sponsors-note", {
+        opacity: 0,
+        duration: 1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".sponsors-note",
+          start: "top 95%",
+        },
+      });
+    }, section);
 
     return () => ctx.revert();
   }, []);
@@ -43,73 +104,64 @@ export default function Sponsors() {
     <section
       ref={sectionRef}
       id="sponsors"
-      className="relative overflow-hidden bg-charcoal py-28 sm:py-36"
+      className="relative overflow-hidden bg-charcoal py-28 sm:py-40"
     >
-      {/* Accent stripe */}
-      <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-neon via-neon/30 to-transparent" />
+      <div className="relative mx-auto max-w-[1400px] px-6 lg:px-12">
+        {/* Label */}
+        <span className="mb-6 block text-[10px] font-bold uppercase tracking-[0.4em] text-neon-dim">
+          Partners
+        </span>
 
-      <div className="mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-2 lg:gap-20 lg:px-12">
-        {/* Text */}
-        <div className="sponsor-content flex flex-col justify-center">
-          <span className="mb-3 text-xs font-bold uppercase tracking-[0.3em] text-neon">
-            Partners
-          </span>
-          <h2 className="font-display text-4xl font-black uppercase tracking-tight text-offwhite sm:text-5xl">
-            {SPONSORS_CONTENT.heading}
-          </h2>
-          <p className="mt-6 text-base leading-relaxed text-offwhite/60 sm:text-lg">
-            {SPONSORS_CONTENT.body}
-          </p>
-          <p className="mt-4 text-sm text-offwhite/40">
-            {SPONSORS_CONTENT.note}
-          </p>
-          <a
-            href="#contact"
-            className="magnetic-btn mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-neon px-8 py-4 font-display text-sm font-bold uppercase tracking-widest text-charcoal transition-all duration-300 hover:bg-neon-dim hover:shadow-lg hover:shadow-neon/20"
-          >
-            {SPONSORS_CONTENT.cta}
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+        {/* Heading — massive typography */}
+        <h2 className="sponsors-heading font-display text-[clamp(3rem,10vw,9rem)] font-bold uppercase leading-[0.85] tracking-tight text-offwhite">
+          Partners
+        </h2>
+
+        {/* Full-width neon line */}
+        <div className="sponsors-line my-12 h-[1px] w-full bg-neon/40" />
+
+        {/* Body text */}
+        <div className="grid gap-12 md:grid-cols-2">
+          <div>
+            <p
+              data-split-body
+              className="text-lg leading-relaxed text-offwhite/50 sm:text-xl"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 8l4 4m0 0l-4 4m4-4H3"
-              />
-            </svg>
-          </a>
-        </div>
-
-        {/* Image */}
-        <div className="sponsor-image relative">
-          <div className="aspect-[4/3] overflow-hidden rounded-2xl bg-graphite">
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-charcoal to-graphite">
-              <div className="text-center">
-                <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full border border-offwhite/10">
-                  <svg
-                    className="h-8 w-8 text-offwhite/20"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </div>
-                <p className="text-sm text-offwhite/30">Team group photo</p>
-              </div>
-            </div>
+              {SPONSORS_CONTENT.body}
+            </p>
           </div>
-          {/* Neon accent corner */}
-          <div className="absolute -bottom-3 -left-3 h-24 w-24 rounded-bl-2xl border-b-2 border-l-2 border-neon/40" />
+
+          <div className="flex flex-col justify-between">
+            {/* CTA */}
+            <div className="sponsors-cta">
+              <MagneticButton
+                href="#contact"
+                className="group inline-flex items-center gap-4 border border-neon/30 px-8 py-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-neon transition-all duration-300 hover:bg-neon hover:text-charcoal"
+                strength={0.4}
+                threshold={200}
+              >
+                {SPONSORS_CONTENT.cta}
+                <svg
+                  className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </MagneticButton>
+            </div>
+
+            {/* Note */}
+            <p className="sponsors-note mt-12 max-w-sm text-xs leading-relaxed text-offwhite/25">
+              {SPONSORS_CONTENT.note}
+            </p>
+          </div>
         </div>
       </div>
     </section>
