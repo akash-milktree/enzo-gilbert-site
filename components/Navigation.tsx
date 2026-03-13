@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
+import Image from "next/image";
 import { NAV_LINKS } from "@/lib/constants";
 
 export default function Navigation() {
@@ -54,10 +55,15 @@ export default function Navigation() {
         }`}
       >
         {/* Logo */}
-        <a href="#" className="group relative z-[110]">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-neon/60 font-display text-xs font-bold text-neon transition-all duration-300 group-hover:bg-neon group-hover:text-charcoal">
-            EG
-          </div>
+        <a href="#" className="relative z-[110]">
+          <Image
+            src="/media/organised/logos/color-logo-white.svg"
+            alt="Enzo Gilbert"
+            width={120}
+            height={24}
+            className="h-6 w-auto"
+            priority
+          />
         </a>
 
         {/* Menu toggle */}

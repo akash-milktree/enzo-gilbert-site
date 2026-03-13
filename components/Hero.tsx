@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { HERO_CONTENT, MEDIA } from "@/lib/constants";
+import Image from "next/image";
+import { HERO_CONTENT } from "@/lib/constants";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -122,15 +123,14 @@ export default function Hero() {
       {/* Background — video/image placeholder */}
       <div ref={bgRef} className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-charcoal" />
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 h-full w-full object-cover opacity-40"
-        >
-          <source src={MEDIA.heroVideo} type="video/mp4" />
-        </video>
+        <Image
+          src="/media/organised/hero background.webp"
+          alt="Enzo Gilbert"
+          fill
+          className="object-cover opacity-40"
+          sizes="100vw"
+          priority
+        />
       </div>
 
       {/* Gradient overlay */}

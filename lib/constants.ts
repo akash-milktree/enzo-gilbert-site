@@ -95,6 +95,87 @@ export const SPORTS_CONTENT = {
   ],
 };
 
+export const SPORTS_MEDIA = [
+  {
+    name: "Golf",
+    slug: "golf",
+    media: [
+      { type: "image" as const, src: "/media/organised/golf/golf 1.png" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_1_video_0.mp4" },
+      { type: "image" as const, src: "/media/organised/golf/golf 2.png" },
+      { type: "image" as const, src: "/media/organised/golf/golf 3.jpeg" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_1_video_2.mp4" },
+      { type: "image" as const, src: "/media/organised/golf/golf 4.png" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_1_video_3.mp4" },
+      { type: "image" as const, src: "/media/organised/golf/golf 5.png" },
+      { type: "image" as const, src: "/media/organised/golf/golf 6.png" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_2_video_1.mp4" },
+      { type: "image" as const, src: "/media/organised/golf/golf 7.png" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_4_video1.mp4" },
+      { type: "image" as const, src: "/media/organised/golf/golf 8.png" },
+      { type: "image" as const, src: "/media/organised/golf/golf 11.jpg" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_4_video2.mp4" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_1_video_1.mp4" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_4_video3.mp4" },
+      { type: "video" as const, src: "/media/organised/golf/timeline_section_2_video_2.mp4" },
+    ],
+  },
+  {
+    name: "Football",
+    slug: "football",
+    media: [
+      { type: "image" as const, src: "/media/organised/football/football 1.jpeg" },
+      { type: "video" as const, src: "/media/organised/football/football vid 1.mp4" },
+      { type: "image" as const, src: "/media/organised/football/football 2.jpg" },
+      { type: "video" as const, src: "/media/organised/football/football vid 2.mp4" },
+      { type: "image" as const, src: "/media/organised/football/football 3.jpeg" },
+    ],
+  },
+  {
+    name: "Motocross",
+    slug: "motocross",
+    media: [
+      { type: "image" as const, src: "/media/organised/motocross/motocross 1.png" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 1.mp4" },
+      { type: "image" as const, src: "/media/organised/motocross/motocross 2.png" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 2.mp4" },
+      { type: "image" as const, src: "/media/organised/motocross/motocross 3.png" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 4.mp4" },
+      { type: "image" as const, src: "/media/organised/motocross/motocross 4.png" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 5.mp4" },
+      { type: "image" as const, src: "/media/organised/motocross/motocross 5.png" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 6.mp4" },
+      { type: "image" as const, src: "/media/organised/motocross/motocross 8.jpeg" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 7.mp4" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 3.mp4" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 8.mp4" },
+      { type: "video" as const, src: "/media/organised/motocross/motocross vid 9.mp4" },
+    ],
+  },
+  {
+    name: "Skiing",
+    slug: "skiing",
+    media: [
+      { type: "image" as const, src: "/media/organised/ski/ski 1.jpeg" },
+      { type: "video" as const, src: "/media/organised/ski/ski vid 1.mp4" },
+      { type: "image" as const, src: "/media/organised/ski/ski 2.jpeg" },
+      { type: "image" as const, src: "/media/organised/ski/ski 3.jpeg" },
+      { type: "video" as const, src: "/media/organised/ski/ski vid 3.mp4" },
+      { type: "image" as const, src: "/media/organised/ski/ski 4.jpeg" },
+      { type: "image" as const, src: "/media/organised/ski/ski 6.jpeg" },
+      { type: "image" as const, src: "/media/organised/ski/ski 7.jpeg" },
+    ],
+  },
+  {
+    name: "Karate",
+    slug: "karate",
+    media: [
+      { type: "image" as const, src: "/media/organised/karate/karate 1.jpg" },
+      { type: "image" as const, src: "/media/organised/karate/karate 2.jpg" },
+    ],
+  },
+];
+
 export const SPONSORS_CONTENT = {
   heading: "Sponsors & Partnerships",
   body: "Enzo's journey is supported by his family, coaches, and the growing community that believes in his potential. The family welcomes sponsorship opportunities that align with Enzo's values and sporting journey.",

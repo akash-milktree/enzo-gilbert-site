@@ -4,348 +4,313 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
-import { SPORTS_CONTENT } from "@/lib/constants";
-
-const SPORT_IMAGES = [
-  "/media/beyond green/football/IMG_6780.jpeg",
-  "/media/beyond green/motocross/IMG_0438.jpeg",
-  "/media/beyond green/skiing/IMG_1309.jpeg",
-  "/media/beyond green/karate/5ab00c87-184b-4142-8346-f7d83e93c915.jpg",
-];
+import { SPORTS_MEDIA } from "@/lib/constants";
 
 gsap.registerPlugin(ScrollTrigger);
 
+/* Alternating card widths for visual rhythm */
+const CARD_WIDTHS = [
+  "w-[55vw]",
+  "w-[40vw]",
+  "w-[38vw]",
+  "w-[50vw]",
+  "w-[42vw]",
+];
+
 export default function SportsShowcase() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const titleRef = useRef<HTMLDivElement>(null);
-  const panelsRef = useRef<HTMLDivElement>(null);
-  const counterRef = useRef<HTMLSpanElement>(null);
-  const progressRef = useRef<HTMLDivElement>(null);
+  const sportRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const stripRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const nameRefs = useRef<(HTMLHeadingElement | null)[]>([]);
+  const progressRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     const ctx = gsap.context(() => {
       if (!isMobile) {
-        /* ── DESKTOP: Full-viewport scroll-pinned sport panels ── */
-        const panels = panelsRef.current;
-        if (!panels) return;
+        SPORTS_MEDIA.forEach((_sport, i) => {
+          const section = sportRefs.current[i];
+          const strip = stripRefs.current[i];
+          const name = nameRefs.current[i];
+          const progress = progressRefs.current[i];
+          if (!section || !strip) return;
 
-        const sportPanels =
-          panels.querySelectorAll<HTMLElement>(".sport-panel");
-        const totalPanels = sportPanels.length;
-        // Title phase + one phase per panel transition (3 transitions) + hold
-        const scrollLength = (totalPanels + 1) * 100;
+          const scrollWidth = strip.scrollWidth;
+          const viewWidth = window.innerWidth;
+          const distance = scrollWidth - viewWidth;
 
-        // Initial states
-        gsap.set(titleRef.current, { opacity: 1, y: 0 });
-        gsap.set(progressRef.current, {
-          scaleY: 0,
-          transformOrigin: "top center",
-        });
+          /* 1.5x multiplier = slower, more deliberate scroll */
+          const scrollEnd = Math.max(distance * 1.5, viewWidth);
 
-        // All panels except first start hidden (bottom-up wipe)
-        sportPanels.forEach((panel, i) => {
-          if (i > 0) {
-            gsap.set(panel, {
-              clipPath: "polygon(0 100%, 100% 100%, 100% 100%, 0 100%)",
+          if (distance > 0) {
+            /* ── Horizontal scroll tween ── */
+            const scrollTween = gsap.to(strip, {
+              x: -distance,
+              ease: "none",
+              scrollTrigger: {
+                trigger: section,
+                pin: true,
+                start: "top top",
+                end: `+=${scrollEnd}`,
+                scrub: 1,
+                anticipatePin: 1,
+              },
+            });
+
+            /* ── Card entrance via containerAnimation ── */
+            const cards = strip.querySelectorAll<HTMLElement>(".media-card");
+            cards.forEach((card) => {
+              gsap.fromTo(
+                card,
+                { opacity: 0, y: 40, scale: 0.92 },
+                {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  ease: "power2.out",
+                  scrollTrigger: {
+                    trigger: card,
+                    containerAnimation: scrollTween,
+                    start: "left 95%",
+                    end: "left 65%",
+                    scrub: true,
+                  },
+                }
+              );
+            });
+          } else {
+            /* Few items — just pin briefly */
+            ScrollTrigger.create({
+              trigger: section,
+              pin: true,
+              start: "top top",
+              end: `+=${viewWidth}`,
+              anticipatePin: 1,
             });
           }
-          // Sport names start hidden
-          const name = panel.querySelector(".sport-name");
-          const num = panel.querySelector(".sport-num");
-          if (name) gsap.set(name, { y: 50, opacity: 0 });
-          if (num) gsap.set(num, { opacity: 0 });
-        });
 
-        // Pin
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top top",
-          end: `+=${scrollLength}vh`,
-          pin: true,
-          pinSpacing: true,
-          anticipatePin: 1,
-        });
-
-        // Master scrubbed timeline
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            end: `+=${scrollLength}vh`,
-            scrub: 1,
-          },
-        });
-
-        const phase = 1 / (totalPanels + 1);
-
-        // ── Title phase (0 → phase) ──
-        // Title stays, then fades out
-        tl.to(
-          titleRef.current,
-          { opacity: 0, y: -50, duration: phase * 0.5, ease: "none" },
-          phase * 0.5
-        );
-
-        // First panel's name + number reveal as title fades
-        const firstName = sportPanels[0]?.querySelector(".sport-name");
-        const firstNum = sportPanels[0]?.querySelector(".sport-num");
-        if (firstName) {
-          tl.to(
-            firstName,
-            { y: 0, opacity: 1, duration: phase * 0.4, ease: "none" },
-            phase * 0.6
-          );
-        }
-        if (firstNum) {
-          tl.to(
-            firstNum,
-            { opacity: 1, duration: phase * 0.3, ease: "none" },
-            phase * 0.7
-          );
-        }
-
-        // ── Sport panel transitions ──
-        for (let i = 1; i < totalPanels; i++) {
-          const panel = sportPanels[i];
-          const startTime = (i + 0.3) * phase;
-
-          // Previous panel's text fades out
-          const prevName = sportPanels[i - 1]?.querySelector(".sport-name");
-          const prevNum = sportPanels[i - 1]?.querySelector(".sport-num");
-          if (prevName) {
-            tl.to(
-              prevName,
-              { y: -30, opacity: 0, duration: phase * 0.3, ease: "none" },
-              startTime
-            );
-          }
-          if (prevNum) {
-            tl.to(
-              prevNum,
-              { opacity: 0, duration: phase * 0.2, ease: "none" },
-              startTime
-            );
-          }
-
-          // Panel wipes upward
-          tl.to(
-            panel,
-            {
-              clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)",
-              duration: phase * 0.7,
-              ease: "none",
-            },
-            startTime + phase * 0.1
-          );
-
-          // New panel's text reveals
-          const name = panel.querySelector(".sport-name");
-          const num = panel.querySelector(".sport-num");
+          /* ── Watermark drifts left and fades ── */
           if (name) {
-            tl.to(
+            gsap.fromTo(
               name,
-              { y: 0, opacity: 1, duration: phase * 0.3, ease: "none" },
-              startTime + phase * 0.6
+              { opacity: 0.1, x: 0 },
+              {
+                opacity: 0.04,
+                x: -120,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: section,
+                  start: "top top",
+                  end: `+=${scrollEnd}`,
+                  scrub: true,
+                },
+              }
             );
           }
-          if (num) {
-            tl.to(
-              num,
-              { opacity: 1, duration: phase * 0.2, ease: "none" },
-              startTime + phase * 0.7
+
+          /* ── Progress bar ── */
+          if (progress) {
+            gsap.fromTo(
+              progress,
+              { scaleX: 0, transformOrigin: "left center" },
+              {
+                scaleX: 1,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: section,
+                  start: "top top",
+                  end: `+=${scrollEnd}`,
+                  scrub: true,
+                },
+              }
             );
           }
-        }
-
-        // ── Progress bar fills across entire timeline ──
-        tl.to(progressRef.current, { scaleY: 1, duration: 1, ease: "none" }, 0);
-
-        // ── Counter updates ──
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top top",
-          end: `+=${scrollLength}vh`,
-          scrub: true,
-          onUpdate: (self) => {
-            if (!counterRef.current) return;
-            const p = self.progress;
-            const sportProgress = Math.max(0, (p - phase) / (1 - phase));
-            const idx = Math.min(
-              Math.floor(sportProgress * totalPanels),
-              totalPanels - 1
-            );
-            counterRef.current.textContent = String(idx + 1).padStart(2, "0");
-          },
-        });
-      } else {
-        /* ── MOBILE: Simple card reveals ── */
-        gsap.from(".sports-heading-mobile", {
-          y: 40,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power4.out",
-          scrollTrigger: { trigger: section, start: "top 75%" },
-        });
-
-        const cards = section.querySelectorAll(".sport-card-mobile");
-        gsap.from(cards, {
-          y: 80,
-          opacity: 0,
-          duration: 0.7,
-          stagger: 0.15,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: cards[0] || section,
-            start: "top 80%",
-          },
         });
       }
-    }, section);
+    });
 
-    return () => ctx.revert();
+    /* ── Video play/pause observer ── */
+    const videos = document.querySelectorAll<HTMLVideoElement>(".sport-video");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const video = entry.target as HTMLVideoElement;
+          if (entry.isIntersecting) {
+            video.play().catch(() => {});
+          } else {
+            video.pause();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+    videos.forEach((v) => observer.observe(v));
+
+    return () => {
+      ctx.revert();
+      observer.disconnect();
+    };
   }, []);
 
-  const sports = SPORTS_CONTENT.sports;
-
-  // Alternate text positions for visual rhythm
-  const namePositions = [
-    "bottom-10 left-6 lg:bottom-16 lg:left-12",
-    "bottom-10 right-6 lg:bottom-16 lg:right-12 text-right",
-    "bottom-10 left-6 lg:bottom-16 lg:left-12",
-    "bottom-10 right-6 lg:bottom-16 lg:right-12 text-right",
-  ];
-
-  const numPositions = [
-    "justify-end",
-    "justify-start",
-    "justify-end",
-    "justify-start",
-  ];
-
   return (
-    <section
-      ref={sectionRef}
-      id="sports"
-      className="relative overflow-hidden bg-charcoal"
-    >
-      {/* ═══════ DESKTOP ═══════ */}
-      <div className="relative hidden min-h-screen md:block">
-        {/* Title card — centered, fades out on scroll */}
-        <div
-          ref={titleRef}
-          className="absolute inset-0 z-30 flex flex-col items-center justify-center px-6"
-        >
-          <span className="mb-4 text-[10px] font-bold uppercase tracking-[0.4em] text-neon">
-            Beyond Golf
-          </span>
-          <h2 className="text-center font-display text-[clamp(2.5rem,6vw,5.5rem)] font-bold uppercase leading-[0.95] tracking-tight text-offwhite">
-            {SPORTS_CONTENT.heading}
-          </h2>
-          <p className="mt-4 max-w-md text-center text-sm text-offwhite/40">
-            {SPORTS_CONTENT.subheading}
-          </p>
-        </div>
-
-        {/* Stacked sport panels */}
-        <div ref={panelsRef} className="absolute inset-0">
-          {sports.map((sport, i) => (
-            <div
-              key={sport.slug}
-              className="sport-panel absolute inset-0"
-              style={{ zIndex: i + 1 }}
-              data-cursor="explore"
-            >
-              {/* Full-bleed image */}
-              <div className="absolute inset-0">
-                <Image
-                  src={SPORT_IMAGES[i]}
-                  alt={sport.name}
-                  fill
-                  className="object-cover"
-                  sizes="100vw"
-                />
-                <div className="absolute inset-0 bg-charcoal/40" />
-              </div>
-
-              {/* Sport name — oversized display type */}
-              <div className={`absolute z-10 ${namePositions[i]}`}>
-                <h3 className="sport-name font-display text-[clamp(3rem,11vw,10rem)] font-bold uppercase leading-[0.85] text-offwhite">
-                  {sport.name}
-                </h3>
-              </div>
-
-              {/* Index counter — opposite side of name */}
-              <div className="absolute bottom-10 left-6 right-6 z-10 lg:bottom-16 lg:left-12 lg:right-12">
-                <div className={`flex ${numPositions[i]}`}>
-                  <span className="sport-num font-display text-sm font-bold uppercase tracking-wider text-offwhite/20">
-                    {String(i + 1).padStart(2, "0")} /{" "}
-                    {String(sports.length).padStart(2, "0")}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Right-side progress indicator */}
-        <div className="absolute right-6 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-3 lg:right-12">
-          <span
-            ref={counterRef}
-            className="font-display text-4xl font-bold text-neon lg:text-5xl"
-          >
-            01
-          </span>
-          <div className="relative h-20 w-[2px] overflow-hidden bg-offwhite/10 lg:h-28">
-            <div ref={progressRef} className="absolute inset-0 bg-neon" />
-          </div>
-          <span className="font-display text-xs font-bold text-offwhite/20">
-            {String(sports.length).padStart(2, "0")}
-          </span>
-        </div>
-      </div>
-
-      {/* ═══════ MOBILE ═══════ */}
-      <div className="px-6 py-20 md:hidden">
-        <span className="mb-4 block text-[10px] font-bold uppercase tracking-[0.4em] text-neon">
-          Beyond Golf
+    <div id="sports">
+      {/* ═══════ Title Section ═══════ */}
+      <div className="flex min-h-[50vh] flex-col items-center justify-center bg-charcoal px-6">
+        <span className="mb-4 text-[10px] font-bold uppercase tracking-[0.4em] text-neon">
+          Multi-Sport Athlete
         </span>
-        <h2 className="sports-heading-mobile mb-8 font-display text-[clamp(2rem,8vw,3rem)] font-bold uppercase leading-[0.95] tracking-tight text-offwhite">
-          {SPORTS_CONTENT.heading}
+        <h2 className="text-center font-display text-[clamp(2.5rem,8vw,6rem)] font-bold uppercase leading-[0.9] tracking-tight text-offwhite">
+          Beyond the Green
         </h2>
+        <p className="mt-4 max-w-md text-center text-sm text-offwhite/40">
+          Golf is just the beginning. Enzo loves every sport he tries.
+        </p>
+      </div>
 
-        <div className="space-y-4">
-          {sports.map((sport, i) => (
-            <div
-              key={sport.slug}
-              className="sport-card-mobile relative overflow-hidden rounded-lg"
+      {/* ═══════ Sport Sections — one pinned horizontal strip each ═══════ */}
+      {SPORTS_MEDIA.map((sport, i) => (
+        <div
+          key={sport.slug}
+          ref={(el) => {
+            sportRefs.current[i] = el;
+          }}
+          className="relative overflow-hidden bg-charcoal"
+        >
+          {/* ── DESKTOP ── */}
+          <div className="hidden md:block">
+            {/* Watermark */}
+            <h3
+              ref={(el) => {
+                nameRefs.current[i] = el;
+              }}
+              className="pointer-events-none absolute left-1/2 top-1/2 z-0 -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display text-[clamp(8rem,22vw,20rem)] font-bold uppercase text-offwhite/10"
             >
-              <div className="relative aspect-[16/10] overflow-hidden">
-                <Image
-                  src={SPORT_IMAGES[i]}
-                  alt={sport.name}
-                  fill
-                  className="object-cover"
-                  sizes="90vw"
-                />
-                <div className="absolute inset-0 bg-charcoal/30" />
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-neon">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3 className="font-display text-2xl font-bold uppercase text-offwhite">
+              {sport.name}
+            </h3>
+
+            {/* Top bar */}
+            <div className="absolute left-8 right-8 top-8 z-20 flex items-center justify-between lg:left-12 lg:right-12">
+              <div className="flex items-center gap-4">
+                <div className="h-[1px] w-8 bg-neon" />
+                <span className="font-display text-lg font-bold uppercase tracking-[0.3em] text-neon lg:text-2xl">
                   {sport.name}
-                </h3>
+                </span>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-offwhite/30">
+                  {sport.media.length} moments
+                </span>
+                <span className="font-display text-sm font-bold text-offwhite/20">
+                  {String(i + 1).padStart(2, "0")} /{" "}
+                  {String(SPORTS_MEDIA.length).padStart(2, "0")}
+                </span>
               </div>
             </div>
-          ))}
+
+            {/* Horizontal media strip */}
+            <div
+              ref={(el) => {
+                stripRefs.current[i] = el;
+              }}
+              className="flex h-screen items-center gap-5 pl-8 pr-[20vw] lg:gap-8 lg:pl-12"
+            >
+              {sport.media.map((item, j) => {
+                const widthClass =
+                  sport.media.length <= 3
+                    ? "w-[60vw]"
+                    : CARD_WIDTHS[j % CARD_WIDTHS.length];
+
+                return (
+                  <div
+                    key={j}
+                    className={`media-card relative ${widthClass} h-[72vh] flex-shrink-0 overflow-hidden rounded-xl`}
+                    data-cursor="explore"
+                  >
+                    {item.type === "video" ? (
+                      <video
+                        className="sport-video h-full w-full object-cover"
+                        loop
+                        muted
+                        playsInline
+                        preload="none"
+                      >
+                        <source src={item.src} type="video/mp4" />
+                      </video>
+                    ) : (
+                      <Image
+                        src={item.src}
+                        alt={`${sport.name} ${j + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="55vw"
+                        loading="lazy"
+                      />
+                    )}
+                    {/* Bottom gradient */}
+                    <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-charcoal/40 to-transparent" />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Bottom progress bar */}
+            <div className="absolute bottom-8 left-8 right-8 z-20 lg:left-12 lg:right-12">
+              <div className="h-[2px] w-full overflow-hidden bg-offwhite/10">
+                <div
+                  ref={(el) => {
+                    progressRefs.current[i] = el;
+                  }}
+                  className="h-full w-full bg-neon"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ── MOBILE ── */}
+          <div className="px-6 py-12 md:hidden">
+            <div className="mb-4 flex items-center gap-3">
+              <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-neon">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="h-[1px] flex-1 bg-offwhite/10" />
+            </div>
+            <h3 className="mb-6 font-display text-3xl font-bold uppercase text-offwhite">
+              {sport.name}
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {sport.media.map((item, j) => (
+                <div
+                  key={j}
+                  className={`relative overflow-hidden rounded-lg ${
+                    j === 0 ? "col-span-2 aspect-[16/10]" : "aspect-square"
+                  }`}
+                >
+                  {item.type === "video" ? (
+                    <video
+                      className="sport-video h-full w-full object-cover"
+                      loop
+                      muted
+                      playsInline
+                      preload="none"
+                    >
+                      <source src={item.src} type="video/mp4" />
+                    </video>
+                  ) : (
+                    <Image
+                      src={item.src}
+                      alt={`${sport.name} ${j + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="50vw"
+                      loading="lazy"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    </section>
+      ))}
+    </div>
   );
 }
