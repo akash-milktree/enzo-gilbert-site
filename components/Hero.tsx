@@ -124,7 +124,7 @@ export default function Hero() {
       <div ref={bgRef} className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-charcoal" />
         <Image
-          src="/media/organised/hero background.webp"
+          src="/media/organised/hero-background.webp"
           alt="Enzo Gilbert"
           fill
           className="object-cover opacity-40"
