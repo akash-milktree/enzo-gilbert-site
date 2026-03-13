@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { HERO_CONTENT } from "@/lib/constants";
+import { HERO_CONTENT, MEDIA } from "@/lib/constants";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -20,28 +20,34 @@ export default function Hero() {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
     const ctx = gsap.context(() => {
+      // Set initial hidden state
+      gsap.set(title, { y: 60, opacity: 0 });
+      gsap.set(".hero-tagline", { y: 30, opacity: 0 });
+      gsap.set(".hero-stat", { y: 20, opacity: 0 });
+      gsap.set(".hero-scroll", { opacity: 0 });
+
       // Entrance animation
       const tl = gsap.timeline({ delay: 2.8 }); // After preloader
 
-      tl.from(title, {
-        y: 60,
-        opacity: 0,
+      tl.to(title, {
+        y: 0,
+        opacity: 1,
         duration: 1.2,
         ease: "power4.out",
       })
-        .from(
+        .to(
           ".hero-tagline",
-          { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" },
+          { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
           "-=0.6"
         )
-        .from(
+        .to(
           ".hero-stat",
-          { y: 20, opacity: 0, duration: 0.6, ease: "power3.out" },
+          { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" },
           "-=0.4"
         )
-        .from(
+        .to(
           ".hero-scroll",
-          { opacity: 0, duration: 0.6, ease: "power2.out" },
+          { opacity: 1, duration: 0.6, ease: "power2.out" },
           "-=0.2"
         );
 
@@ -56,32 +62,40 @@ export default function Hero() {
           anticipatePin: 1,
         });
 
-        // Text zoom + spread on scroll
-        gsap.to(title, {
-          scale: 1.4,
-          letterSpacing: "0.15em",
-          opacity: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            end: "+=100%",
-            scrub: 1,
-          },
-        });
+        // Text zoom + spread on scroll — use fromTo to lock start values
+        gsap.fromTo(
+          title,
+          { scale: 1, letterSpacing: "0em", opacity: 1 },
+          {
+            scale: 1.4,
+            letterSpacing: "0.15em",
+            opacity: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "+=100%",
+              scrub: 1,
+            },
+          }
+        );
 
         // Tagline fades out
-        gsap.to(".hero-tagline", {
-          opacity: 0,
-          y: -30,
-          ease: "none",
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            end: "+=60%",
-            scrub: 1,
-          },
-        });
+        gsap.fromTo(
+          ".hero-tagline",
+          { opacity: 1, y: 0 },
+          {
+            opacity: 0,
+            y: -30,
+            ease: "none",
+            scrollTrigger: {
+              trigger: section,
+              start: "top top",
+              end: "+=60%",
+              scrub: 1,
+            },
+          }
+        );
 
         // Background parallax
         gsap.to(bgRef.current, {
@@ -108,15 +122,15 @@ export default function Hero() {
       {/* Background — video/image placeholder */}
       <div ref={bgRef} className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-charcoal" />
-        {/* Animated accent blobs for visual interest */}
-        <div className="absolute -right-[20%] -top-[20%] h-[80vh] w-[80vh] rounded-full bg-neon/[0.03] blur-[120px]" />
-        <div className="absolute -bottom-[30%] -left-[10%] h-[60vh] w-[60vh] rounded-full bg-neon/[0.02] blur-[100px]" />
-        {/*
-          When video ready:
-          <video autoPlay loop muted playsInline className="h-full w-full object-cover opacity-40">
-            <source src="/media/hero.mp4" type="video/mp4" />
-          </video>
-        */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover opacity-40"
+        >
+          <source src={MEDIA.heroVideo} type="video/mp4" />
+        </video>
       </div>
 
       {/* Gradient overlay */}

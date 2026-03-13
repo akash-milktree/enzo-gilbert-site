@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SplitType from "split-type";
-import { JOURNEY_CONTENT } from "@/lib/constants";
+import Image from "next/image";
+import { JOURNEY_CONTENT, MEDIA } from "@/lib/constants";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -181,18 +182,27 @@ export default function GolfJourney() {
                 {String(m.id).padStart(2, "0")}
               </div>
 
-              {/* Media placeholder — left 60% */}
+              {/* Media — left 60% */}
               <div className="relative mr-12 h-[65vh] w-[60%] flex-shrink-0 overflow-hidden rounded-lg bg-offwhite/[0.04]">
-                <div className="flex h-full w-full items-center justify-center">
-                  <div className="text-center">
-                    <div className="mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full border border-offwhite/10">
-                      <span className="font-display text-2xl font-bold text-offwhite/15">
-                        {String(m.id).padStart(2, "0")}
-                      </span>
-                    </div>
-                    <p className="text-xs text-offwhite/20">{m.caption}</p>
-                  </div>
-                </div>
+                {MEDIA.journey[m.id - 1]?.type === "video" ? (
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover"
+                  >
+                    <source src={MEDIA.journey[m.id - 1].src} type="video/mp4" />
+                  </video>
+                ) : (
+                  <Image
+                    src={MEDIA.journey[m.id - 1]?.src ?? ""}
+                    alt={m.caption}
+                    fill
+                    className="object-cover"
+                    sizes="60vw"
+                  />
+                )}
                 {/* Gradient scrim at bottom */}
                 <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-charcoal/60 to-transparent" />
               </div>
@@ -244,11 +254,27 @@ export default function GolfJourney() {
               {String(m.id).padStart(2, "0")}
             </span>
 
-            {/* Media placeholder */}
-            <div className="mb-6 aspect-video overflow-hidden rounded bg-offwhite/[0.06]">
-              <div className="flex h-full w-full items-center justify-center">
-                <p className="text-xs text-offwhite/20">{m.caption}</p>
-              </div>
+            {/* Media */}
+            <div className="relative mb-6 aspect-video overflow-hidden rounded bg-offwhite/[0.06]">
+              {MEDIA.journey[m.id - 1]?.type === "video" ? (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="h-full w-full object-cover"
+                >
+                  <source src={MEDIA.journey[m.id - 1].src} type="video/mp4" />
+                </video>
+              ) : (
+                <Image
+                  src={MEDIA.journey[m.id - 1]?.src ?? ""}
+                  alt={m.caption}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 90vw, 60vw"
+                />
+              )}
             </div>
 
             <span className="mb-1 block text-[10px] font-bold uppercase tracking-[0.3em] text-neon/60">

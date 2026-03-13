@@ -35,64 +35,50 @@ export default function CustomCursor() {
 
     document.addEventListener("mousemove", moveCursor);
 
-    // Context-aware hover states
-    const expandCursor = (text: string) => {
-      cursor.classList.add("expanded");
-      label.textContent = text;
+    // Context-aware hover states via event delegation (no MutationObserver)
+    const handleMouseOver = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const el = target.closest(
+        "a, button, [role='button'], [data-cursor], input, textarea, select"
+      );
+      if (!el) return;
+
+      if (el.matches("input, textarea, select")) {
+        cursor.style.opacity = "0";
+      } else if (el.matches("[data-cursor='explore']")) {
+        cursor.classList.add("expanded");
+        label.textContent = "Explore";
+      } else if (el.matches("[data-cursor='drag']")) {
+        cursor.classList.add("expanded");
+        label.textContent = "Drag";
+      } else if (el.matches("a, button, [role='button']")) {
+        cursor.classList.add("expanded");
+        label.textContent = "View";
+      }
     };
 
-    const shrinkCursor = () => {
-      cursor.classList.remove("expanded");
-      label.textContent = "";
+    const handleMouseOut = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const el = target.closest(
+        "a, button, [role='button'], [data-cursor], input, textarea, select"
+      );
+      if (!el) return;
+
+      if (el.matches("input, textarea, select")) {
+        cursor.style.opacity = "1";
+      } else {
+        cursor.classList.remove("expanded");
+        label.textContent = "";
+      }
     };
 
-    const attachHoverListeners = () => {
-      // Interactive elements — show "VIEW"
-      document
-        .querySelectorAll("a, button, [role='button']")
-        .forEach((el) => {
-          el.addEventListener("mouseenter", () => expandCursor("View"));
-          el.addEventListener("mouseleave", shrinkCursor);
-        });
-
-      // Images — show "EXPLORE"
-      document
-        .querySelectorAll("[data-cursor='explore']")
-        .forEach((el) => {
-          el.addEventListener("mouseenter", () => expandCursor("Explore"));
-          el.addEventListener("mouseleave", shrinkCursor);
-        });
-
-      // Draggable areas — show "DRAG"
-      document
-        .querySelectorAll("[data-cursor='drag']")
-        .forEach((el) => {
-          el.addEventListener("mouseenter", () => expandCursor("Drag"));
-          el.addEventListener("mouseleave", shrinkCursor);
-        });
-
-      // Form inputs — hide cursor
-      document
-        .querySelectorAll("input, textarea, select")
-        .forEach((el) => {
-          el.addEventListener("mouseenter", () => {
-            cursor.style.opacity = "0";
-          });
-          el.addEventListener("mouseleave", () => {
-            cursor.style.opacity = "1";
-          });
-        });
-    };
-
-    attachHoverListeners();
-
-    // Re-attach for dynamic elements
-    const observer = new MutationObserver(attachHoverListeners);
-    observer.observe(document.body, { childList: true, subtree: true });
+    document.addEventListener("mouseover", handleMouseOver);
+    document.addEventListener("mouseout", handleMouseOut);
 
     return () => {
       document.removeEventListener("mousemove", moveCursor);
-      observer.disconnect();
+      document.removeEventListener("mouseover", handleMouseOver);
+      document.removeEventListener("mouseout", handleMouseOut);
     };
   }, []);
 

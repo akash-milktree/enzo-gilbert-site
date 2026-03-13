@@ -1,3 +1,15 @@
+// Media paths
+export const MEDIA = {
+  heroVideo: "/media/enzo/timeline_section_1_video_1.mp4",
+  portrait: "/media/enzo/IMG_0508.jpeg",
+  journey: [
+    { type: "video" as const, src: "/media/enzo/timeline_section_1_video_0.mp4" },
+    { type: "image" as const, src: "/media/enzo/timeline_section_2_image_1.jpeg" },
+    { type: "image" as const, src: "/media/enzo/timeline_section_3_image3.jpeg" },
+    { type: "image" as const, src: "/media/enzo/timeline_section_4_image1.jpeg" },
+  ],
+};
+
 export const SITE = {
   name: "Enzo Gilbert",
   tagline: "Talent Beyond His Years",
