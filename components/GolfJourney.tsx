@@ -30,8 +30,8 @@ export default function GolfJourney() {
           x: -totalWidth,
           ease: "none",
           scrollTrigger: {
-            trigger: section,
-            start: "top top",
+            trigger: track,
+            start: "top 10%",
             end: () => `+=${totalWidth}`,
             pin: true,
             scrub: 1,

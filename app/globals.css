@@ -40,6 +40,12 @@ body {
   color: #1E2125;
 }
 
+/* Force iframe to respect parent border-radius */
+.media-card {
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+  mask-image: radial-gradient(white, black);
+}
+
 /* Grain overlay */
 .grain-overlay {
   position: fixed;

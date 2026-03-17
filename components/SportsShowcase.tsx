@@ -186,18 +186,19 @@ export default function SportsShowcase() {
               ref={(el) => {
                 stripRefs.current[i] = el;
               }}
-              className="flex h-screen items-center gap-5 pl-8 pr-[20vw] lg:gap-8 lg:pl-12"
+              className="flex h-screen items-center gap-3 pl-8 pr-[20vw] lg:gap-4 lg:pl-12"
             >
               {sport.media.map((item, j) => (
                   <div
                     key={j}
-                    className={`media-card relative h-[72vh] w-[50vw] shrink-0 overflow-hidden rounded-xl`}
+                    className="media-card relative h-[72vh] w-[50vw] shrink-0 overflow-hidden rounded-xl"
+                    style={{ isolation: "isolate" }}
                     data-cursor="explore"
                   >
                     {item.type === "vimeo" ? (
                       <iframe
                         src={`https://player.vimeo.com/video/${item.src}?background=1&autoplay=1&loop=1&muted=1&dnt=1`}
-                        className="pointer-events-none absolute inset-0 h-full w-full rounded-xl"
+                        className="pointer-events-none absolute inset-0 h-full w-full"
                         style={{ border: 0 }}
                         allow="autoplay; fullscreen"
                         loading="lazy"
@@ -207,7 +208,7 @@ export default function SportsShowcase() {
                       <img
                         src={item.src}
                         alt={`${sport.name} ${j + 1}`}
-                        className="absolute inset-0 h-full w-full rounded-xl object-cover"
+                        className="absolute inset-0 h-full w-full object-cover"
                       />
                     )}
                   </div>
