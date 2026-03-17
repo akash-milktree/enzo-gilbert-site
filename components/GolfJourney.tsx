@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import SplitType from "split-type";
-import Image from "next/image";
 import { JOURNEY_CONTENT, MEDIA } from "@/lib/constants";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -182,29 +181,26 @@ export default function GolfJourney() {
                 {String(m.id).padStart(2, "0")}
               </div>
 
-              {/* Media — left 60% */}
-              <div className="relative mr-12 h-[65vh] w-[60%] flex-shrink-0 overflow-hidden rounded-lg bg-offwhite/[0.04]">
+              {/* Media — left side */}
+              <div className="mr-12 h-[65vh] shrink-0 overflow-hidden rounded-lg">
                 {MEDIA.journey[m.id - 1]?.type === "video" ? (
                   <video
                     autoPlay
                     loop
                     muted
                     playsInline
-                    className="h-full w-full object-cover"
+                    className="h-full w-auto rounded-lg"
                   >
                     <source src={MEDIA.journey[m.id - 1].src} type="video/mp4" />
                   </video>
                 ) : (
-                  <Image
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
                     src={MEDIA.journey[m.id - 1]?.src ?? ""}
                     alt={m.caption}
-                    fill
-                    className="object-cover"
-                    sizes="60vw"
+                    className="h-full w-auto rounded-lg"
                   />
                 )}
-                {/* Gradient scrim at bottom */}
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-charcoal/60 to-transparent" />
               </div>
 
               {/* Text — right side */}
@@ -255,24 +251,23 @@ export default function GolfJourney() {
             </span>
 
             {/* Media */}
-            <div className="relative mb-6 aspect-video overflow-hidden rounded bg-offwhite/[0.06]">
+            <div className="relative mb-6 aspect-video overflow-hidden rounded-lg">
               {MEDIA.journey[m.id - 1]?.type === "video" ? (
                 <video
                   autoPlay
                   loop
                   muted
                   playsInline
-                  className="h-full w-full object-cover"
+                  className="h-full w-full rounded-lg object-cover"
                 >
                   <source src={MEDIA.journey[m.id - 1].src} type="video/mp4" />
                 </video>
               ) : (
-                <Image
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
                   src={MEDIA.journey[m.id - 1]?.src ?? ""}
                   alt={m.caption}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 90vw, 60vw"
+                  className="h-full w-full rounded-lg object-cover"
                 />
               )}
             </div>

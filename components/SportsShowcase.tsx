@@ -3,19 +3,9 @@
 import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Image from "next/image";
 import { SPORTS_MEDIA } from "@/lib/constants";
 
 gsap.registerPlugin(ScrollTrigger);
-
-/* Alternating card widths for visual rhythm */
-const CARD_WIDTHS = [
-  "w-[55vw]",
-  "w-[40vw]",
-  "w-[38vw]",
-  "w-[50vw]",
-  "w-[42vw]",
-];
 
 export default function SportsShowcase() {
   const sportRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -25,109 +15,136 @@ export default function SportsShowcase() {
 
   useEffect(() => {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    let ctx: gsap.Context | null = null;
 
-    const ctx = gsap.context(() => {
-      if (!isMobile) {
-        SPORTS_MEDIA.forEach((_sport, i) => {
-          const section = sportRefs.current[i];
-          const strip = stripRefs.current[i];
-          const name = nameRefs.current[i];
-          const progress = progressRefs.current[i];
-          if (!section || !strip) return;
+    /* Wait for all images/videos to load so scrollWidth is accurate */
+    const container = document.getElementById("sports");
+    const imgs = container
+      ? Array.from(container.querySelectorAll("img, video"))
+      : [];
+    const loaded = imgs.map((el) => {
+      if (el instanceof HTMLImageElement && el.complete) return Promise.resolve();
+      if (el instanceof HTMLVideoElement && el.readyState >= 1)
+        return Promise.resolve();
+      return new Promise<void>((r) => {
+        el.addEventListener("load", () => r(), { once: true });
+        el.addEventListener("loadedmetadata", () => r(), { once: true });
+        el.addEventListener("error", () => r(), { once: true });
+      });
+    });
 
-          const scrollWidth = strip.scrollWidth;
-          const viewWidth = window.innerWidth;
-          const distance = scrollWidth - viewWidth;
+    /* Start GSAP after media is ready (or after 2s timeout) */
+    const init = () => {
+      ctx = gsap.context(() => {
+        if (!isMobile) {
+          SPORTS_MEDIA.forEach((_sport, i) => {
+            const section = sportRefs.current[i];
+            const strip = stripRefs.current[i];
+            const name = nameRefs.current[i];
+            const progress = progressRefs.current[i];
+            if (!section || !strip) return;
 
-          /* 1.5x multiplier = slower, more deliberate scroll */
-          const scrollEnd = Math.max(distance * 1.5, viewWidth);
+            const scrollWidth = strip.scrollWidth;
+            const viewWidth = window.innerWidth;
+            const distance = scrollWidth - viewWidth;
 
-          if (distance > 0) {
-            /* ── Horizontal scroll tween ── */
-            const scrollTween = gsap.to(strip, {
-              x: -distance,
-              ease: "none",
-              scrollTrigger: {
+            /* 1.5x multiplier = slower, more deliberate scroll */
+            const scrollEnd = Math.max(distance * 1.5, viewWidth);
+
+            if (distance > 0) {
+              /* ── Horizontal scroll tween ── */
+              const scrollTween = gsap.to(strip, {
+                x: -distance,
+                ease: "none",
+                scrollTrigger: {
+                  trigger: section,
+                  pin: true,
+                  start: "top top",
+                  end: `+=${scrollEnd}`,
+                  scrub: 1,
+                  anticipatePin: 1,
+                  invalidateOnRefresh: true,
+                },
+              });
+
+              /* ── Card entrance via containerAnimation ── */
+              const cards =
+                strip.querySelectorAll<HTMLElement>(".media-card");
+              cards.forEach((card) => {
+                gsap.fromTo(
+                  card,
+                  { opacity: 0, y: 40, scale: 0.92 },
+                  {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                      trigger: card,
+                      containerAnimation: scrollTween,
+                      start: "left 95%",
+                      end: "left 65%",
+                      scrub: true,
+                    },
+                  }
+                );
+              });
+            } else {
+              /* Few items — just pin briefly */
+              ScrollTrigger.create({
                 trigger: section,
                 pin: true,
                 start: "top top",
-                end: `+=${scrollEnd}`,
-                scrub: 1,
+                end: `+=${viewWidth}`,
                 anticipatePin: 1,
-              },
-            });
+              });
+            }
 
-            /* ── Card entrance via containerAnimation ── */
-            const cards = strip.querySelectorAll<HTMLElement>(".media-card");
-            cards.forEach((card) => {
+            /* ── Watermark drifts left and fades ── */
+            if (name) {
               gsap.fromTo(
-                card,
-                { opacity: 0, y: 40, scale: 0.92 },
+                name,
+                { opacity: 0.1, x: 0 },
                 {
-                  opacity: 1,
-                  y: 0,
-                  scale: 1,
-                  ease: "power2.out",
+                  opacity: 0.04,
+                  x: -120,
+                  ease: "none",
                   scrollTrigger: {
-                    trigger: card,
-                    containerAnimation: scrollTween,
-                    start: "left 95%",
-                    end: "left 65%",
+                    trigger: section,
+                    start: "top top",
+                    end: `+=${scrollEnd}`,
                     scrub: true,
                   },
                 }
               );
-            });
-          } else {
-            /* Few items — just pin briefly */
-            ScrollTrigger.create({
-              trigger: section,
-              pin: true,
-              start: "top top",
-              end: `+=${viewWidth}`,
-              anticipatePin: 1,
-            });
-          }
+            }
 
-          /* ── Watermark drifts left and fades ── */
-          if (name) {
-            gsap.fromTo(
-              name,
-              { opacity: 0.1, x: 0 },
-              {
-                opacity: 0.04,
-                x: -120,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: section,
-                  start: "top top",
-                  end: `+=${scrollEnd}`,
-                  scrub: true,
-                },
-              }
-            );
-          }
+            /* ── Progress bar ── */
+            if (progress) {
+              gsap.fromTo(
+                progress,
+                { scaleX: 0, transformOrigin: "left center" },
+                {
+                  scaleX: 1,
+                  ease: "none",
+                  scrollTrigger: {
+                    trigger: section,
+                    start: "top top",
+                    end: `+=${scrollEnd}`,
+                    scrub: true,
+                  },
+                }
+              );
+            }
+          });
+        }
+      });
+    };
 
-          /* ── Progress bar ── */
-          if (progress) {
-            gsap.fromTo(
-              progress,
-              { scaleX: 0, transformOrigin: "left center" },
-              {
-                scaleX: 1,
-                ease: "none",
-                scrollTrigger: {
-                  trigger: section,
-                  start: "top top",
-                  end: `+=${scrollEnd}`,
-                  scrub: true,
-                },
-              }
-            );
-          }
-        });
-      }
-    });
+    Promise.race([
+      Promise.all(loaded),
+      new Promise((r) => setTimeout(r, 2000)),
+    ]).then(init);
 
     /* ── Video play/pause observer ── */
     const videos = document.querySelectorAll<HTMLVideoElement>(".sport-video");
@@ -147,7 +164,7 @@ export default function SportsShowcase() {
     videos.forEach((v) => observer.observe(v));
 
     return () => {
-      ctx.revert();
+      ctx?.revert();
       observer.disconnect();
     };
   }, []);
@@ -214,43 +231,42 @@ export default function SportsShowcase() {
               }}
               className="flex h-screen items-center gap-5 pl-8 pr-[20vw] lg:gap-8 lg:pl-12"
             >
-              {sport.media.map((item, j) => {
-                const widthClass =
-                  sport.media.length <= 3
-                    ? "w-[60vw]"
-                    : CARD_WIDTHS[j % CARD_WIDTHS.length];
-
-                return (
+              {sport.media.map((item, j) => (
                   <div
                     key={j}
-                    className={`media-card relative ${widthClass} h-[72vh] flex-shrink-0 overflow-hidden rounded-xl`}
+                    className={`media-card h-[72vh] shrink-0 overflow-hidden rounded-xl ${
+                      item.type === "vimeo" ? "aspect-video" : ""
+                    }`}
                     data-cursor="explore"
                   >
-                    {item.type === "video" ? (
+                    {item.type === "vimeo" ? (
+                      <iframe
+                        src={`https://player.vimeo.com/video/${item.src}?background=1&autoplay=1&loop=1&muted=1&dnt=1`}
+                        className="pointer-events-none h-full w-full rounded-xl"
+                        style={{ border: 0 }}
+                        allow="autoplay; fullscreen"
+                        loading="lazy"
+                      />
+                    ) : item.type === "video" ? (
                       <video
-                        className="sport-video h-full w-full object-cover"
+                        className="sport-video h-full w-auto rounded-xl"
                         loop
                         muted
                         playsInline
-                        preload="none"
+                        preload="metadata"
                       >
                         <source src={item.src} type="video/mp4" />
                       </video>
                     ) : (
-                      <Image
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
                         src={item.src}
                         alt={`${sport.name} ${j + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="55vw"
-                        loading="lazy"
+                        className="h-full w-auto rounded-xl"
                       />
                     )}
-                    {/* Bottom gradient */}
-                    <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-charcoal/40 to-transparent" />
                   </div>
-                );
-              })}
+                ))}
             </div>
 
             {/* Bottom progress bar */}
@@ -285,9 +301,17 @@ export default function SportsShowcase() {
                     j === 0 ? "col-span-2 aspect-[16/10]" : "aspect-square"
                   }`}
                 >
-                  {item.type === "video" ? (
+                  {item.type === "vimeo" ? (
+                    <iframe
+                      src={`https://player.vimeo.com/video/${item.src}?background=1&autoplay=1&loop=1&muted=1&dnt=1`}
+                      className="pointer-events-none absolute inset-0 h-full w-full rounded-lg"
+                      style={{ border: 0 }}
+                      allow="autoplay; fullscreen"
+                      loading="lazy"
+                    />
+                  ) : item.type === "video" ? (
                     <video
-                      className="sport-video h-full w-full object-cover"
+                      className="sport-video h-full w-full rounded-lg object-cover"
                       loop
                       muted
                       playsInline
@@ -296,12 +320,11 @@ export default function SportsShowcase() {
                       <source src={item.src} type="video/mp4" />
                     </video>
                   ) : (
-                    <Image
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
                       src={item.src}
                       alt={`${sport.name} ${j + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="50vw"
+                      className="h-full w-full rounded-lg object-cover"
                       loading="lazy"
                     />
                   )}
