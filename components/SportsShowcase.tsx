@@ -15,27 +15,8 @@ export default function SportsShowcase() {
 
   useEffect(() => {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
-    let ctx: gsap.Context | null = null;
 
-    /* Wait for all images/videos to load so scrollWidth is accurate */
-    const container = document.getElementById("sports");
-    const imgs = container
-      ? Array.from(container.querySelectorAll("img, video"))
-      : [];
-    const loaded = imgs.map((el) => {
-      if (el instanceof HTMLImageElement && el.complete) return Promise.resolve();
-      if (el instanceof HTMLVideoElement && el.readyState >= 1)
-        return Promise.resolve();
-      return new Promise<void>((r) => {
-        el.addEventListener("load", () => r(), { once: true });
-        el.addEventListener("loadedmetadata", () => r(), { once: true });
-        el.addEventListener("error", () => r(), { once: true });
-      });
-    });
-
-    /* Start GSAP after media is ready (or after 2s timeout) */
-    const init = () => {
-      ctx = gsap.context(() => {
+    const ctx = gsap.context(() => {
         if (!isMobile) {
           SPORTS_MEDIA.forEach((_sport, i) => {
             const section = sportRefs.current[i];
@@ -138,34 +119,10 @@ export default function SportsShowcase() {
             }
           });
         }
-      });
-    };
-
-    Promise.race([
-      Promise.all(loaded),
-      new Promise((r) => setTimeout(r, 2000)),
-    ]).then(init);
-
-    /* ── Video play/pause observer ── */
-    const videos = document.querySelectorAll<HTMLVideoElement>(".sport-video");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          const video = entry.target as HTMLVideoElement;
-          if (entry.isIntersecting) {
-            video.play().catch(() => {});
-          } else {
-            video.pause();
-          }
-        });
-      },
-      { threshold: 0.25 }
-    );
-    videos.forEach((v) => observer.observe(v));
+    });
 
     return () => {
-      ctx?.revert();
-      observer.disconnect();
+      ctx.revert();
     };
   }, []);
 
@@ -234,15 +191,13 @@ export default function SportsShowcase() {
               {sport.media.map((item, j) => (
                   <div
                     key={j}
-                    className={`media-card h-[72vh] shrink-0 overflow-hidden rounded-xl ${
-                      item.type === "vimeo" ? "aspect-video" : ""
-                    }`}
+                    className={`media-card relative h-[72vh] w-[50vw] shrink-0 overflow-hidden rounded-xl`}
                     data-cursor="explore"
                   >
                     {item.type === "vimeo" ? (
                       <iframe
                         src={`https://player.vimeo.com/video/${item.src}?background=1&autoplay=1&loop=1&muted=1&dnt=1`}
-                        className="pointer-events-none h-full w-full rounded-xl"
+                        className="pointer-events-none absolute inset-0 h-full w-full rounded-xl"
                         style={{ border: 0 }}
                         allow="autoplay; fullscreen"
                         loading="lazy"
@@ -252,7 +207,7 @@ export default function SportsShowcase() {
                       <img
                         src={item.src}
                         alt={`${sport.name} ${j + 1}`}
-                        className="h-full w-auto rounded-xl"
+                        className="absolute inset-0 h-full w-full rounded-xl object-cover"
                       />
                     )}
                   </div>

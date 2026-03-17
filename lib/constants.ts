@@ -1,12 +1,12 @@
 // Media paths
 export const MEDIA = {
-  heroVideo: "/media/enzo/timeline_section_1_video_1.mp4",
-  portrait: "/media/enzo/IMG_0508.jpeg",
+  heroVideo: "/media/organised/golf/timeline_section_1_video_1.mp4",
+  portrait: "/media/organised/enzo 1.jpeg",
   journey: [
-    { type: "video" as const, src: "/media/enzo/timeline_section_1_video_0.mp4" },
-    { type: "image" as const, src: "/media/enzo/timeline_section_2_image_1.jpeg" },
-    { type: "image" as const, src: "/media/enzo/timeline_section_3_image3.jpeg" },
-    { type: "image" as const, src: "/media/enzo/timeline_section_4_image1.jpeg" },
+    { type: "video" as const, src: "/media/organised/golf/timeline_section_1_video_0.mp4" },
+    { type: "image" as const, src: "/media/organised/golf/golf 3.jpeg" },
+    { type: "image" as const, src: "/media/organised/golf/golf 5.png" },
+    { type: "image" as const, src: "/media/organised/golf/golf 7.png" },
   ],
 };
 

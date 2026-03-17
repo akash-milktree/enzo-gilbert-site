@@ -182,14 +182,14 @@ export default function GolfJourney() {
               </div>
 
               {/* Media — left side */}
-              <div className="mr-12 h-[65vh] shrink-0 overflow-hidden rounded-lg">
+              <div className="relative mr-12 h-[65vh] w-[55%] shrink-0 overflow-hidden rounded-lg">
                 {MEDIA.journey[m.id - 1]?.type === "video" ? (
                   <video
                     autoPlay
                     loop
                     muted
                     playsInline
-                    className="h-full w-auto rounded-lg"
+                    className="absolute inset-0 h-full w-full rounded-lg object-cover"
                   >
                     <source src={MEDIA.journey[m.id - 1].src} type="video/mp4" />
                   </video>
@@ -198,7 +198,7 @@ export default function GolfJourney() {
                   <img
                     src={MEDIA.journey[m.id - 1]?.src ?? ""}
                     alt={m.caption}
-                    className="h-full w-auto rounded-lg"
+                    className="absolute inset-0 h-full w-full rounded-lg object-cover"
                   />
                 )}
               </div>
