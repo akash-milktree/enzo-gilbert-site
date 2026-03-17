@@ -247,16 +247,6 @@ export default function SportsShowcase() {
                         allow="autoplay; fullscreen"
                         loading="lazy"
                       />
-                    ) : item.type === "video" ? (
-                      <video
-                        className="sport-video h-full w-auto rounded-xl"
-                        loop
-                        muted
-                        playsInline
-                        preload="metadata"
-                      >
-                        <source src={item.src} type="video/mp4" />
-                      </video>
                     ) : (
                       /* eslint-disable-next-line @next/next/no-img-element */
                       <img
@@ -309,16 +299,6 @@ export default function SportsShowcase() {
                       allow="autoplay; fullscreen"
                       loading="lazy"
                     />
-                  ) : item.type === "video" ? (
-                    <video
-                      className="sport-video h-full w-full rounded-lg object-cover"
-                      loop
-                      muted
-                      playsInline
-                      preload="none"
-                    >
-                      <source src={item.src} type="video/mp4" />
-                    </video>
                   ) : (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
