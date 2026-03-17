@@ -55,7 +55,7 @@ export default function Navigation() {
         }`}
       >
         {/* Logo */}
-        <a href="#" className="relative z-[110]">
+        <a href="/" className="relative z-[110]">
           <Image
             src="/media/organised/logos/color-logo-white.svg"
             alt="Enzo Gilbert"

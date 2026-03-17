@@ -191,14 +191,14 @@ export default function SportsShowcase() {
               {sport.media.map((item, j) => (
                   <div
                     key={j}
-                    className="media-card relative h-[72vh] w-[50vw] shrink-0 overflow-hidden rounded-xl"
+                    className="media-card relative h-[65vh] w-[calc(65vh*16/9)] shrink-0 overflow-hidden rounded-xl"
                     style={{ isolation: "isolate" }}
                     data-cursor="explore"
                   >
                     {item.type === "vimeo" ? (
                       <iframe
                         src={`https://player.vimeo.com/video/${item.src}?background=1&autoplay=1&loop=1&muted=1&dnt=1`}
-                        className="pointer-events-none absolute inset-0 h-full w-full"
+                        className="pointer-events-none absolute inset-0 h-full w-full scale-[1.15]"
                         style={{ border: 0 }}
                         allow="autoplay; fullscreen"
                         loading="lazy"
@@ -243,14 +243,15 @@ export default function SportsShowcase() {
               {sport.media.map((item, j) => (
                 <div
                   key={j}
-                  className={`relative overflow-hidden rounded-lg ${
+                  className={`media-card relative overflow-hidden rounded-lg ${
                     j === 0 ? "col-span-2 aspect-[16/10]" : "aspect-square"
                   }`}
+                  style={{ isolation: "isolate" }}
                 >
                   {item.type === "vimeo" ? (
                     <iframe
                       src={`https://player.vimeo.com/video/${item.src}?background=1&autoplay=1&loop=1&muted=1&dnt=1`}
-                      className="pointer-events-none absolute inset-0 h-full w-full rounded-lg"
+                      className="pointer-events-none absolute inset-0 h-full w-full scale-[1.15]"
                       style={{ border: 0 }}
                       allow="autoplay; fullscreen"
                       loading="lazy"
@@ -260,7 +261,7 @@ export default function SportsShowcase() {
                     <img
                       src={item.src}
                       alt={`${sport.name} ${j + 1}`}
-                      className="h-full w-full rounded-lg object-cover"
+                      className="h-full w-full object-cover"
                       loading="lazy"
                     />
                   )}

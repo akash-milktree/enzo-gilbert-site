@@ -42,8 +42,8 @@ body {
 
 /* Force iframe to respect parent border-radius */
 .media-card {
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
-  mask-image: radial-gradient(white, black);
+  -webkit-mask-image: linear-gradient(white, white);
+  mask-image: linear-gradient(white, white);
 }
 
 /* Grain overlay */
